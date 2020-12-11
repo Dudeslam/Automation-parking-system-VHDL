@@ -1,0 +1,28 @@
+class World
+instance variables
+public static env : [Environment] := new Environment("scenario.txt");
+public static timerRef : Timer := new Timer();  
+
+operations
+public Run: () ==> ()
+Run() ==
+(
+	IO`print("Simulating APS system \n");
+	env.Run();
+	IO`print("Finished APS System simulation");
+	-- Create a parkingLot
+--Create cars
+--Add to queue
+--Parkcars
+-- give random timer
+--LeaveCars
+	
+	
+);
+
+
+functions
+-- TODO Define functions here
+traces
+-- TODO Define Combinatorial Test Traces here
+end World

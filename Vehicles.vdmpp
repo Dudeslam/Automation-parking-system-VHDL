@@ -1,0 +1,172 @@
+class Vehicles
+types
+
+-- Constructor type
+public Car ::
+Size : dimensions
+LPlate : licenseplate
+CType : CarType;
+
+
+
+public CarType = <BigCar> | <SmallCar> | <None>;
+
+public dimensions ::
+height : real
+width : real
+length : real
+weight : real
+inv p == p.weight <= 4000 and p.weight >= 820 and 
+p.height <= 220 and p.height > 140 and
+p.width <= 200 and p.width >= 158 and
+p.length <= 520 and p.length >= 350
+;
+
+public licenseplate ::
+letters_ : seq of char
+numbs_ : seq of nat
+;
+--Needs invariant so length of letters = 5 and length of numbs = 2
+
+--protected profile ::
+--name_ : seq of char
+--bankID_ : token;
+
+values
+default_lp : licenseplate = mk_licenseplate(['A', 'A'],[1, 1, 1, 1, 1]);
+
+instance variables
+
+protected dim_: dimensions;
+public lic_: licenseplate :=default_lp;
+protected CType_ : CarType;
+protected Car_ : Car;
+
+--Licenseplate database
+protected LPDB_ : set of licenseplate := {};
+
+
+--Global Counters
+private static LPLet_ : seq of char := ['A', 'A'];
+private static LPNumb_ : seq of nat :=[1, 1, 1, 1, 1];
+
+inv len LPNumb_ = 5;
+inv forall x in seq [1,2,3,4,5] & LPNumb_(x) <=9 and LPNumb_(x) >= 0;
+
+
+
+-- create invariant so numbers doesn't exceed 9, if exceed then up one in the field before.
+
+operations
+-- Default constructor
+public Vehicles : () ==> Vehicles
+Vehicles() ==
+return self;
+
+
+
+--constructor
+public Vehicles : dimensions ==> Vehicles
+Vehicles(d) ==
+(
+dim_ := d;
+lic_ :=newlicense();
+CType_ := getCarType(d);
+);
+
+public CarCon : dimensions==> Car
+CarCon(d) ==
+(Car_.Size := d;
+Car_.LPlate := newlicense();
+Car_.CType := getCarType(d);
+return Car_;
+);
+
+
+--function to create vehicle
+-- Add dimensions and license plate, from dimensions categorize if big or small car
+public newCar : dimensions ==> Vehicles`Car
+newCar(d) ==
+(let dim =d,
+			 lic = newlicense(), 
+			 cartypes = getCarType(dim)
+in -- not sure if correct method
+	return CarCon(dim);
+);
+
+
+
+-- create a new license. Increment global variable, if value at current index exceeds 10, 
+-- then set it to 0 and add one to previous
+--use nat to string
+
+public newlicense : () ==> Vehicles`licenseplate
+newlicense() ==
+(	LPNumb_(5) := LPNumb_(5)+1;
+for i in [1,2,3,4,5] do
+	if LPNumb_(i)=10
+	then
+	(
+		LPNumb_(i-1) := LPNumb_(i-1)+1;
+		LPNumb_(i) := 0;
+	);
+lic_.letters_ := LPLet_;
+lic_.numbs_ := LPNumb_;
+addLicense(lic_);
+return lic_;
+);
+
+
+public addLicense : licenseplate ==> ()
+addLicense(C) ==
+LPDB_ := LPDB_ union {C}
+pre C not in set LPDB_;
+
+
+public getLicense : () ==> Vehicles`licenseplate
+getLicense() ==
+	return lic_;
+
+
+
+public SetDim : real * real * real* real ==> Vehicles`dimensions
+SetDim(we, he, wi, le) ==
+(dim_.weight := we;
+dim_.height := he;
+dim_.width := wi;
+dim_.length :=le;
+return dim_;
+);
+
+public getCarType : Vehicles`dimensions ==> Vehicles`CarType
+getCarType(d) ==
+if( d.height < 170  and
+	d.width <=180  and
+	d.length < 480  and
+	d.weight <=3600)
+then 
+	return <SmallCar>
+else
+	return <BigCar>
+;
+
+public getType : () ==> Vehicles`CarType
+getType() ==
+return CType_;
+
+public getDim : () ==> Vehicles`dimensions
+getDim() ==
+	return dim_;
+
+
+
+functions
+
+
+traces
+-- TODO Define Combinatorial Test Traces here
+end Vehicles
+
+
+
+

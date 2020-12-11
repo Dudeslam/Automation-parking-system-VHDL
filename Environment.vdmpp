@@ -1,0 +1,162 @@
+class Environment
+types
+
+--input file Vehicles`dimensions
+private inline = Vehicles`dimensions;
+
+values
+-- TODO Define values here
+instance variables
+public APS : ParkingHouse := new ParkingHouse();
+private io: IO := new IO();
+private inlines : seq of inline := [];
+private outlines : seq of char := [];
+private CarQueue : seq of Vehicles := [];
+private CarIDList : seq of ParkingHouse`CarID := [];
+private PHSpace : ParkingHouse`Space;
+
+
+private isParked : bool := false;
+private IsAvail : ParkingHouse`SpaceAvailable;
+private Finished : bool := false;
+
+
+
+operations
+
+public Environment : seq of char ==> Environment
+Environment(fname) == 
+(
+  def mk_(-,input) = io.freadval[seq of Vehicles`dimensions](fname) 
+  in
+--  	IO`print(input(1));
+    inlines := input;
+		
+);
+
+
+public setPHouse : nat * nat ==> ()
+setPHouse(big, reg) ==
+(
+ 		PHSpace:= APS.setPHsize(big,reg);
+		APS := new ParkingHouse(PHSpace);
+);
+
+
+
+
+public createCars : () ==> ()
+createCars() ==
+(
+	if len inlines >0
+	then (dcl curTime : nat := World`timerRef.GetTime(),
+					done: bool:= false;
+				while not done do
+				(
+					for x in inlines do
+						(
+							AddToQ(x);
+							inlines := tl inlines;
+							if inlines = [] then
+							done := true;
+						)
+				)
+			)
+);
+
+public AddToQ : Vehicles`dimensions ==> ()
+AddToQ(d) ==
+CarQueue := CarQueue ^ [new Vehicles(d)];				
+
+public remFromQ : Vehicles  ==> ()
+remFromQ(V) ==
+(
+	CarQueue := [CarQueue(x) |x in set inds CarQueue & CarQueue(x) <> V]
+);
+
+public getAvail : () ==> ParkingHouse`SpaceAvailable
+getAvail() ==
+return APS.ParkingAvail_;
+
+public move2Last : Vehicles ==> ()
+move2Last(V) ==
+(
+	CarQueue := [CarQueue(x) |x in set inds CarQueue & CarQueue(x) <> V];
+	CarQueue := CarQueue ^ [V];
+);
+
+public removeAllCars: () ==> ()
+removeAllCars() ==
+(
+	for x in CarIDList do
+	APS.removeCar(x);
+	if PHSpace = APS.getAllSpace() then
+	Finished := true;
+);
+
+public remove1Car: (nat) ==> ()
+remove1Car(index) ==
+(
+	APS.removeCar(CarIDList(index));
+	CarIDList := [CarIDList(x) |x in set inds CarIDList & CarIDList(x) <> CarIDList(index)];
+	--remove from carIDlist
+);
+
+public APSSystem : () ==> ()
+APSSystem() ==
+(
+	while len CarQueue > 0 do
+	(
+		for x in CarQueue do
+		(
+			IsAvail := getAvail();
+			if APS.Park(x) = true then
+			(
+				IO`print("Parking Car \n");
+				CarIDList := CarIDList ^ [APS.getID()];
+				remFromQ(x);
+			)
+			else
+			(
+				IO`print("Could not park, due to limited space\n");
+				move2Last(x);
+				if IsAvail.big = false and IsAvail.reg = false then
+				(
+					IO`print("A vehicle will now leave\n");
+					remove1Car(1);
+				)	
+				elseif IsAvail.big = false and IsAvail.reg = true and x.getType() = <BigCar> then
+				(
+					IO`print("A vehicle will now leave\n");
+					remove1Car(1);
+				)
+			)	
+		)
+	)
+);
+
+
+public Run : () ==> ()
+Run() ==
+(
+	while not isFinished() do
+	(
+		setPHouse(2,4);
+		createCars();
+		APSSystem();
+		IO`print("No vehicles left in queue, the rest will now leave\n");
+		removeAllCars();
+	)
+);
+
+
+public isFinished: () ==> bool
+isFinished() ==
+return inlines = [] and Finished;
+
+
+functions
+-- TODO Define functions here
+traces
+-- TODO Define Combinatorial Test Traces here
+end Environment

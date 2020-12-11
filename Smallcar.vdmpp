@@ -1,0 +1,37 @@
+class SmallCar is subclass of Vehicles
+types
+SmallVehicle ::
+dim : dimensions
+lic : licenseplate;
+
+
+
+values
+
+
+instance variables
+Small_car : SmallVehicle;
+
+inv IsSmall(Small_car.dim);
+
+
+
+operations
+protected SmallCar : dimensions * licenseplate ==> SmallCar
+SmallCar(d, p) ==
+(dim_ := d;
+lic_ := p;);
+functions
+IsSmall : Vehicles`dimensions -> bool
+IsSmall(d) ==
+(
+d.height < 170 and d.height > 140 and
+d.width <=180 and d.width >158 and
+d.length > 480 and d.length <=350 and
+d.weight <=3600 and d.weight >= 820
+);
+--Assert small car type
+
+traces
+-- TODO Define Combinatorial Test Traces here
+end SmallCar

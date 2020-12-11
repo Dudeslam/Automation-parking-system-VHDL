@@ -1,0 +1,11 @@
+[mk_Vehicles`dimensions(155, 160, 400, 1800),
+mk_Vehicles`dimensions(160, 170, 380, 2200),
+mk_Vehicles`dimensions(180, 190, 500, 3800),
+mk_Vehicles`dimensions(144, 168, 390, 2400),
+mk_Vehicles`dimensions(159, 162, 375, 1400),
+mk_Vehicles`dimensions(148, 164, 360, 1600),
+mk_Vehicles`dimensions(210, 192, 490, 3942),
+mk_Vehicles`dimensions(152, 165, 420, 1982),
+mk_Vehicles`dimensions(144, 168, 390, 2400),
+mk_Vehicles`dimensions(144, 168, 390, 2400)
+]

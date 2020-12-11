@@ -1,0 +1,26 @@
+class Timer 
+
+instance variables
+
+  currentTime : nat := 1;
+	private static timerInstance : Timer := new Timer();
+values 
+
+  stepLength : nat = 1;
+
+operations
+public static GetInstance : () ==> Timer
+GetInstance() ==
+return timerInstance;
+
+
+public 
+  StepTime: () ==> ()
+  StepTime() == 
+    currentTime := currentTime + stepLength;
+
+public
+  GetTime: () ==> nat 
+  GetTime() == return currentTime;
+
+end Timer

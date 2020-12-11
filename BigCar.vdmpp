@@ -1,0 +1,29 @@
+class BigCar is subclass of Vehicles
+types
+-- TODO Define types here
+values
+
+
+instance variables
+inv dim_.height > 170 and dim_.width > 180
+ and dim_.length > 490 and dim_.weight > 3600;
+
+
+operations
+protected BigCar : dimensions * licenseplate ==> BigCar
+BigCar(d, p) ==
+(dim_ := d;
+lic_ := p
+);
+
+
+
+
+functions
+
+
+
+
+traces
+-- TODO Define Combinatorial Test Traces here
+end BigCar

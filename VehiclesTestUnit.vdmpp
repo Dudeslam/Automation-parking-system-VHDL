@@ -1,0 +1,56 @@
+class VehiclesTestUnit is subclass of TestCase
+instance variables
+
+operations
+public VehiclesTestUnit : seq of char ==> VehiclesTestUnit
+VehiclesTestUnit(d) == setName(d);
+
+protected TestConstructor : () ==> ()
+TestConstructor() == (
+
+	dcl	Tdim : Vehicles`dimensions := mk_Vehicles`dimensions(160, 170, 400, 2200),
+	TLP : Vehicles`licenseplate := mk_Vehicles`licenseplate(['A', 'A'], [1, 1, 1, 1, 1]),
+	TestVehicle : Vehicles:= new Vehicles(Tdim);
+	assertTrue(TestVehicle.getLicense() = TLP);
+	assertTrue(TestVehicle.getDim() = Tdim);
+	assertTrue(TestVehicle.getType() = <BigCar>);
+);
+
+protected TestLicenseCreator : () ==> ()
+TestLicenseCreator()==
+(let VH = new Vehicles() in
+	(
+		let TLP = VH.newlicense() in
+		IO`print(TLP);
+	)
+);
+
+
+
+
+protected RunTests : () ==> ()
+RunTests() == (
+TestConstructor();
+TestLicenseCreator();
+);
+
+
+end VehiclesTestUnit
+
+
+class Tests
+operations
+
+public Execute : () ==> ()
+Execute() ==
+(
+	let tests : set of Test = {new VehiclesTestUnit("Vehicles Test")},
+		ts: TestSuite = new TestSuite(tests),
+		results: TestResult = new TestResult()
+	in
+	(
+		ts.run(results);
+		IO`print(results.toString());
+	);
+);
+end Tests

@@ -1,0 +1,240 @@
+class ParkingHouse
+types
+
+
+--Collections
+public SpotType = <BigSpace> | <RegSpace> | <Free>;
+public CarID = seq1 of ((Vehicles`licenseplate | nat));
+
+
+--Coordinate is floor level and spot -- Maybe used later
+public Coordinate = nat * nat;
+
+
+public Space :: 
+big: nat
+reg: nat;
+
+public SpaceAvailable ::
+big: bool
+reg: bool;
+
+--Parked Cars
+
+public Parked :: 
+Park_ID : CarID
+CarDS : Vehicles
+CType : Vehicles`CarType
+Spot: SpotType
+--inv p == p.Spot = <RegSpace> => p.CType= <SmallCar>
+;
+
+
+
+values
+default_space = mk_Space(3,2);
+default_avail = mk_SpaceAvailable(true,true);
+empty_park = mk_Parked([0], new Vehicles() ,<None>, <Free>);
+
+
+--Class members
+instance variables
+
+--protected ParkedCars_ : Mapped;
+public ParkedCar_ : Parked := empty_park;
+public ParkingLot_ : seq of Parked := [];
+public ParkingSpace_ : Space := default_space;
+public ParkingAvail_ : SpaceAvailable := default_avail;
+
+
+
+public CurrTime_ : Timer := new Timer();
+
+public All_PID_ : set of CarID := {};
+
+public AllCars_ : map CarID to Parked := {|->};
+
+
+
+
+operations
+
+public ParkingHouse: Space ==> ParkingHouse
+ParkingHouse(p) ==
+(
+	ParkingSpace_ := p;
+	ParkingLot_ := [];
+	ParkingAvail_ := default_avail;
+);
+
+public setPHsize: nat * nat ==> Space
+setPHsize(b, r) ==
+(ParkingSpace_.big := b;
+ParkingSpace_.reg := r;
+return ParkingSpace_
+);
+
+
+--create ID by getting first letter, 2 last numbers and time
+public createID: Vehicles==> CarID
+createID(LP) ==
+(
+let Current = CurrTime_.GetTime() in
+(dcl ID_gen : seq of ((Vehicles`licenseplate | nat)),
+ ID_gen_LP : Vehicles`licenseplate;
+ ID_gen_LP := LP.getLicense();
+ ID_gen := [ID_gen_LP, Current];
+ All_PID_ := All_PID_ union {ID_gen};
+return ID_gen;
+)
+);
+
+public AssignPark : Vehicles * CarID * SpotType==> ()
+AssignPark(VC, ID, ST) ==
+(
+	ParkedCar_.CarDS := VC;
+	ParkedCar_.Park_ID := ID;
+	ParkedCar_.Spot := ST;
+	addCar(ID);
+);
+
+public addCar: CarID ==> ()
+addCar(ID) ==
+	AllCars_ := AllCars_ munion {ID |-> ParkedCar_}
+pre forall x in set dom AllCars_ & ID <> x;
+
+
+-- add bill for later use
+public removeCar: CarID ==> ()
+removeCar(id) ==
+(
+	let car = getParked(id) in
+	(
+		AllCars_ := {id} <-: AllCars_;
+		if car.Spot = <BigSpace>
+		then
+		(
+			ParkingSpace_.big := ParkingSpace_.big + 1;
+			ParkingAvail_.big := true;
+		)
+		else
+			ParkingSpace_.reg := ParkingSpace_.reg + 1;
+			ParkingAvail_.reg := true;
+	)
+);
+
+public mapIDtoPark : map CarID to Parked ==> ()
+mapIDtoPark(newPark) ==
+ParkingLot_ := ParkingLot_ ^ set2seqPark(rng newPark);
+
+
+public getID : () ==> CarID
+getID() ==
+return ParkedCar_.Park_ID;
+
+
+public getParked: CarID ==> Parked
+getParked(id) ==
+	return AllCars_(id)
+pre id in set dom AllCars_
+--and IDinDB(id, All_PID_) 
+;
+
+
+
+-- add ID to database
+public Park : Vehicles ==> bool
+Park(VC) ==
+(dcl Type : Vehicles`CarType := VC.getCarType(VC.getDim()),
+	retID : CarID := createID(VC);
+	if Type = <BigCar>
+		then
+		(
+			if getBigspace() > 0
+			then
+			(
+				AssignPark(VC, retID, <BigSpace>);
+--				mapIDtoPark({retID|-> ParkedCar_});
+				decBigSpace();
+				return true;
+			)
+			else
+				ParkingAvail_.big := false;
+				return false;
+			)
+	else
+	(
+		if getSpace() > 0
+		then
+		(
+			AssignPark(VC, retID, <RegSpace>);
+--			mapIDtoPark({retID|-> ParkedCar_});
+			decSpace();
+			return true;
+		)
+		elseif getBigspace() > 0
+		then
+		(
+			AssignPark(VC, retID, <BigSpace>);
+--			mapIDtoPark({retID|-> ParkedCar_});
+			decBigSpace();
+			return true;
+		)
+		else
+			ParkingAvail_.reg := false;
+			return false
+		)
+	);
+
+public GetAvail : () ==> SpaceAvailable
+GetAvail() == 
+return ParkingAvail_;
+			
+
+
+public getSpace : () ==> nat
+getSpace() == 
+return ParkingSpace_.reg;
+
+
+public getBigspace : () ==> nat
+getBigspace() ==
+return ParkingSpace_.big;
+
+public getAllSpace:() ==> Space
+getAllSpace() ==
+return ParkingSpace_;
+
+public decSpace : () ==> ()
+decSpace() ==
+ParkingSpace_.reg := ParkingSpace_.reg -1;
+
+public decBigSpace : () ==> ()
+decBigSpace() ==
+(ParkingSpace_.big := ParkingSpace_.big -1;
+);
+
+
+
+
+functions
+public CarExists : CarID * set of Parked -> bool
+CarExists(CarID, lot) ==
+exists car in set lot & car.Park_ID = CarID;
+
+--public IDinDB : CarID * set of CarID -> bool
+--IDinDB(CarID, DB) ==
+--exists ID in set DB & ID = CarID;
+
+set2seqPark : set of Parked -> seq of Parked
+set2seqPark(fos) ==
+if fos = {}
+then []
+else let fo in set fos in
+	[fo] ^ set2seqPark(fos\{fo})
+measure card fos;
+
+traces
+
+-- TODO Define Combinatorial Test Traces here
+end ParkingHouse

@@ -1,0 +1,24 @@
+class NetBank
+types
+public CardId = token
+
+instance variables
+private cardNo: CardId;
+private balance: nat;
+
+
+operations
+public DecreaseBal: nat ==> ()
+DecreaseBal(sum) ==
+balance :=balance - sum;
+
+-- constructor
+public NetBank: CardId * nat ==> NetBank
+NetBank(newId, startBal) ==
+(cardNo := newId;
+balance := startBal;);
+
+
+traces
+-- TODO Define Combinatorial Test Traces here
+end NetBank
